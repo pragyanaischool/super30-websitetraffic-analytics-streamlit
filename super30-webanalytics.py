@@ -151,9 +151,9 @@ def display_wikipedia_analytics():
     
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input("Start Date", last_month, max_date=today)
+        start_date = st.date_input("Start Date", last_month, max_value=today)
     with col2:
-        end_date = st.date_input("End Date", today, max_date=today)
+        end_date = st.date_input("End Date", today, max_value=today)
 
     if st.button("Get Article Analytics"):
         if not article:
@@ -213,3 +213,4 @@ if option == "Simulated NYC Road Traffic":
     display_road_traffic_analytics()
 else:
     display_wikipedia_analytics()
+    
