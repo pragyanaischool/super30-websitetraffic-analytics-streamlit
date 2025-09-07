@@ -117,6 +117,9 @@ def fetch_wikipedia_pageviews(article, start_date, end_date):
     
     try:
         response = requests.get(url, headers=headers)
+        if response.status_code == 404:
+            st.error(f"API Error 404: Not Found. This often means the article '{article}' does not exist on English Wikipedia. Please check the spelling and try again.")
+            return None
         response.raise_for_status()
         data = response.json()
         
@@ -148,9 +151,9 @@ def display_wikipedia_analytics():
     
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input("Start Date", last_month)
+        start_date = st.date_input("Start Date", last_month, max_date=today)
     with col2:
-        end_date = st.date_input("End Date", today)
+        end_date = st.date_input("End Date", today, max_date=today)
 
     if st.button("Get Article Analytics"):
         if not article:
