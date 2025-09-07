@@ -1,9 +1,10 @@
-import streamlit as st
+ort streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
 import numpy as np
 from datetime import date, timedelta
+from urllib.parse import unquote
 
 # --- Configuration for Simulated NYC Road Traffic Data ---
 LAT_MIN, LAT_MAX = 40.70, 40.80
@@ -144,7 +145,7 @@ def display_wikipedia_analytics():
     st.info("Analyze the daily pageviews (traffic) for any English Wikipedia article. This uses a free, public API from the Wikimedia Foundation.")
 
     # --- User Inputs ---
-    article = st.text_input("Enter a Wikipedia Article Title (e.g., 'Artificial intelligence')", "Streamlit")
+    article_input = st.text_input("Enter a Wikipedia Article Title or URL (e.g., 'Artificial intelligence')", "Streamlit")
     
     today = date.today()
     last_month = today - timedelta(days=30)
@@ -156,18 +157,25 @@ def display_wikipedia_analytics():
         end_date = st.date_input("End Date", today, max_value=today)
 
     if st.button("Get Article Analytics"):
-        if not article:
-            st.warning("Please enter an article title.")
+        if not article_input:
+            st.warning("Please enter an article title or URL.")
             return
+
+        # --- Process input to extract article title from a URL ---
+        article_title = article_input
+        if "en.wikipedia.org/wiki/" in article_input:
+            article_title = article_input.split('/')[-1]
+            article_title = unquote(article_title).replace('_', ' ')
+
         if start_date > end_date:
             st.warning("Start date cannot be after the end date.")
             return
 
-        with st.spinner(f"Fetching pageview data for '{article}'..."):
-            views_df = fetch_wikipedia_pageviews(article, start_date, end_date)
+        with st.spinner(f"Fetching pageview data for '{article_title}'..."):
+            views_df = fetch_wikipedia_pageviews(article_title, start_date, end_date)
 
         if views_df is not None and not views_df.empty:
-            st.success(f"Successfully retrieved data for '{article}'!")
+            st.success(f"Successfully retrieved data for '{article_title}'!")
             
             # --- Key Metrics ---
             total_views = views_df['pageviews'].sum()
@@ -186,7 +194,7 @@ def display_wikipedia_analytics():
                 views_df,
                 x='date',
                 y='pageviews',
-                title=f"Daily Traffic for '{article}'",
+                title=f"Daily Traffic for '{article_title}'",
                 labels={'pageviews': 'Number of Pageviews', 'date': 'Date'}
             )
             fig.update_layout(hovermode="x unified")
@@ -196,7 +204,7 @@ def display_wikipedia_analytics():
             with st.expander("Show Raw Data"):
                 st.dataframe(views_df)
         else:
-            st.error(f"Could not retrieve or process data for '{article}'. Please check the article title and try again.")
+            st.error(f"Could not retrieve or process data for '{article_title}'. Please check the article title and try again.")
 
 # --- Main App ---
 
